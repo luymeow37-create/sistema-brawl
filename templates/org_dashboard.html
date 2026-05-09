@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DASHBOARD ORG // SCRIMCUP 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00ff66;
+            --accent: #00e5ff;
+            --bg: #050505;
+            --surface: #111;
+            --border: #222;
+            --text-dim: #666;
+            --card: #1a1a1a;
+            --danger: #ff4444;
+            --warning: #ffaa00;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            background: #000;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        .sidebar h2 {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin-bottom: 50px;
+            text-transform: uppercase;
+            border-left: 4px solid var(--primary);
+            padding-left: 10px;
+        }
+
+        .nav-link {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            transition: 0.3s;
+            cursor: pointer;
+            display: block;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary);
+            padding-left: 10px;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            padding: 50px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+        }
+
+        .header h1 {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 2.5rem;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .budget-badge {
+            background: rgba(0, 255, 102, 0.05);
+            border: 1px solid var(--primary);
+            padding: 15px 25px;
+            text-align: right;
+        }
+
+        .modulo-seccion {
+            display: none;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .modulo-seccion.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* TABLAS */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface);
+            margin-bottom: 30px;
+        }
+
+        th {
+            text-align: left;
+            padding: 15px;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        .btn-action {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 10px 18px;
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.65rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-action:hover { opacity: 0.8; transform: scale(1.05); }
+        .btn-disabled { background: #333; color: #666; cursor: not-allowed; }
+        .btn-accent { background: var(--accent); color: #000; }
+
+        .status-pill {
+            padding: 4px 8px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            background: #222;
+            text-transform: uppercase;
+        }
+
+        .empty-slot {
+            color: var(--text-dim);
+            font-style: italic;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>{{ org.tag }} // OPS</h2>
+        <nav>
+            <a onclick="mostrarModulo('mod-perfil')" class="nav-link active" id="btn-mod-perfil">Escritorio</a>
+            <a onclick="mostrarModulo('mod-mercado')" class="nav-link" id="btn-mod-mercado">Mercado</a>
+            <a onclick="mostrarModulo('mod-plantilla')" class="nav-link" id="btn-mod-plantilla">Mi Plantilla</a>
+            <a onclick="mostrarModulo('mod-scrims')" class="nav-link" id="btn-mod-scrims">Scrims Disponibles</a>
+            <a onclick="mostrarModulo('mod-torneos')" class="nav-link" id="btn-mod-torneos">Torneos</a>
+            <a href="/logout" class="nav-link" style="margin-top: 50px; color: var(--danger);">Cerrar Sesión</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <div>
+                <span style="color: var(--primary); font-weight: 800; font-size: 0.7rem; letter-spacing: 2px;">MANAGER DASHBOARD</span>
+                <h1>{{ org.org_name }}</h1>
+            </div>
+            <div class="budget-badge">
+                <small style="color: var(--text-dim); display: block; font-weight: 800; margin-bottom: 5px;">FONDOS DISPONIBLES</small>
+                <span style="font-size: 1.8rem; font-family: 'Archivo Black'; color: var(--primary);">${{ "{:,}".format(org.presupuesto) }}</span>
+            </div>
+        </div>
+
+        <div id="mod-perfil" class="modulo-seccion active">
+            <h3 style="font-family: 'Archivo Black';">NOTICIAS Y ESTADO</h3>
+            <div style="background: var(--surface); padding: 25px; border-left: 4px solid var(--primary); margin-bottom: 20px;">
+                <p>Bienvenido, Manager. Tu organización tiene <b>{{ org.wins }}</b> victorias registradas.</p>
+            </div>
+            
+            {% if noticias %}
+                {% for n_id, n in noticias.items() %}
+                <div style="background: #111; border: 1px solid #222; padding: 20px; margin-bottom: 15px;">
+                    <h4 style="color: var(--primary); margin: 0 0 10px 0; font-family: 'Archivo Black';">{{ n.titulo }}</h4>
+                    <p style="font-size: 0.9rem; color: #ccc; margin: 0;">{{ n.contenido }}</p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: var(--text-dim);">No hay noticias recientes.</p>
+            {% endif %}
+        </div>
+
+        <div id="mod-plantilla" class="modulo-seccion">
+            <h3 style="font-family: 'Archivo Black';">MI ROSTER</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>JUGADOR</th>
+                        <th>TIER</th>
+                        <th>VALOR</th>
+                        <th>ESTADO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for name, p in players.items() %}
+                        {% if p.equipo == org.org_name %}
+                        <tr>
+                            <td><b style="color: var(--primary);">{{ p.display_name }}</b></td>
+                            <td>{{ p.tier }}</td>
+                            <td>${{ "{:,}".format(p.valor) }}</td>
+                            <td><span class="status-pill">ACTIVO</span></td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="mod-mercado" class="modulo-seccion">
+            <h3 style="font-family: 'Archivo Black';">AGENTES LIBRES</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>JUGADOR</th>
+                        <th>VALOR DE FICHAJE</th>
+                        <th>ACCIÓN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for name, p in players.items() %}
+                        {% if p.equipo == 'Libre' %}
+                        <tr>
+                            <form action="/oferta_partidos" method="POST">
+                                <td><b>{{ p.display_name }}</b></td>
+                                <td>${{ "{:,}".format(p.valor) }}</td>
+                                <td>
+                                    <input type="hidden" name="player_name" value="{{ name }}">
+                                    <input type="hidden" name="monto" value="{{ p.valor }}">
+                                    <button type="submit" class="btn-action">ENVIAR CONTRATO</button>
+                                </td>
+                            </form>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="mod-scrims" class="modulo-seccion">
+            <h3 style="font-family: 'Archivo Black';">SCRIMS DISPONIBLES</h3>
+            <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 20px;">Selecciona un slot libre para inscribir a tu organización.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>FECHA</th>
+                        <th>MODO</th>
+                        <th>APUESTA</th>
+                        <th>EQUIPO 1</th>
+                        <th>EQUIPO 2</th>
+                        <th>ESTADO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s_id, s in scrims.items() %}
+                    {% if s.estado != 'Cerrada' %}
+                    <tr>
+                        <td style="font-size: 0.75rem;">{{ s.fecha }}</td>
+                        <td><span class="status-pill">{{ s.modo }}</span></td>
+                        <td style="color: var(--primary); font-weight: 800;">${{ "{:,}".format(s.apuesta) }}</td>
+                        
+                        <td>
+                            {% if s.get('equipo1_id') %}
+                                <b style="color: var(--accent);">{{ s.equipo1_name }}</b>
+                            {% else %}
+                                <a href="/unirse_scrim/{{ s_id }}/1" class="btn-action btn-accent" style="padding: 5px 10px;">ANOTARSE</a>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if s.get('equipo2_id') %}
+                                <b style="color: var(--accent);">{{ s.equipo2_name }}</b>
+                            {% else %}
+                                {% if s.get('equipo1_id') == org.name %}
+                                    <span class="empty-slot">Esperando rival...</span>
+                                {% else %}
+                                    <a href="/unirse_scrim/{{ s_id }}/2" class="btn-action btn-accent" style="padding: 5px 10px;">ANOTARSE</a>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if s.estado == 'Confirmada' %}
+                                <span style="color: var(--primary); font-weight: 900;">LISTA PARA JUGAR</span>
+                            {% else %}
+                                <span style="color: var(--warning);">BUSCANDO EQUIPOS</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="mod-torneos" class="modulo-seccion">
+            <h3 style="font-family: 'Archivo Black';">TORNEOS OFICIALES</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>NOMBRE</th>
+                        <th>PREMIO</th>
+                        <th>ESTADO</th>
+                        <th>ACCIÓN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t_id, t in torneos.items() %}
+                    <tr>
+                        <td><b>{{ t.nombre }}</b></td>
+                        <td style="color: var(--primary);">${{ "{:,}".format(t.premio|int) }}</td>
+                        <td><span class="status-pill">{{ t.estado }}</span></td>
+                        <td>
+                            <button class="btn-action">INSCRIBIR</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function mostrarModulo(id) {
+            // Ocultar todos los módulos y quitar clases activas de los links
+            document.querySelectorAll('.modulo-seccion').forEach(m => m.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            
+            // Mostrar el módulo seleccionado y activar su botón
+            const target = document.getElementById(id);
+            const btn = document.getElementById('btn-' + id);
+            
+            if(target) target.classList.add('active');
+            if(btn) btn.classList.add('active');
+        }
+    </script>
+</body>
+</html>
